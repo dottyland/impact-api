@@ -1,5 +1,5 @@
 const express = require("express");
-
+import handler from "./api/abc";
 // Initialize Express
 const app = express();
 
@@ -7,6 +7,13 @@ const app = express();
 app.get("/", (req, res) => {
   res.send("Express on Vercel");
 });
+app.get("/api/abc",(req,res)=>{
+    res.status(200).json({
+        body: "request.body",
+        query: "request.query",
+        cookies: "request.cookies",
+      });
+})
 
 // Initialize server
 app.listen(5000, () => {
