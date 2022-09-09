@@ -7,9 +7,10 @@ const app = express();
 app.get("/", (req, res) => {
   res.send("Express on Vercel");
 });
-app.get("/api/abc",(req,res)=>{
+app.get("/api/abc/:address/",(req,res)=>{
+    const address=req.params.address
     res.status(200).json({
-        body: "request.body",
+        body: address,
         query: "request.query",
         cookies: "request.cookies",
       });
