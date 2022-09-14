@@ -19,13 +19,11 @@ async function scoreCalculate(address){
      }
     }`
   //add score calculation queries
-  Klima=query({
+  scoreKlima=await query({
       host:"klimadao",
       subgraph:"polygon-bridged-carbon",
       query:queryKlima,
-
     });
-  return score;
 };
 app.use(Session({
   name: 'siwe-quickstart',
@@ -46,7 +44,7 @@ app.get("/", (req, res) => {
 });
 app.get("/api/abc/:address/",(req,res)=>{
     const address=req.params.address;
-    let isPrivate;
+    let isPrivate=1;
     let score;
   //Add call to contract to check privacy
     if(isPrivate){
