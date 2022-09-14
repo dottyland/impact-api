@@ -4,9 +4,27 @@ const express = require("express");
 const app = express();
 const query=require("query");
 // Create GET request
+const ethers = require("ethers")
 async function scoreCalculate(address){
+  queryKlima=`{
+    klimaRetires(where: {beneficiary: { benificiaryAddress:${address} } }) {
+    pool
+    token
+    amount
+    retirementMessage
+    retiringAddress
+    beneficiary
+    beneficiaryAddress
+    beneficiary
+     }
+    }`
   //add score calculation queries
-  score=address;
+  Klima=query({
+      host:"klimadao",
+      subgraph:"polygon-bridged-carbon",
+      query:queryKlima,
+
+    });
   return score;
 };
 app.use(Session({
@@ -27,24 +45,35 @@ app.get("/", (req, res) => {
   res.send("Express on Vercel");
 });
 app.get("/api/abc/:address/",(req,res)=>{
-    const address=req.params.address
-    res.status(200).json({
-        body: address,
-        query: "request.query",
-        cookies: "request.cookies",
+    const address=req.params.address;
+    let isPrivate;
+    let score;
+  //Add call to contract to check privacy
+    if(isPrivate){
+      res.status(401).json({message:'Data is private and offChain'});
+      return;
+    }
+    else
+    {
+      score=scoreCalculate(address);
+      res.status(200).json({
+      score:score
       });
+    }
 })
+
 app.get("/api/restrictedView/:tokenId",(req,res)=>{
   if(!req.session.siwe){
-
     res.status(401).json({message:'You have to sign-in'});
     return;
   }
+
+
   //add etherscan call to check privacy list
   let check=req.body.check;
   if(check===false){
   
-    res.status(422).json({message: 'Ask the owner for access'});
+    res.status(401).json({message: 'Ask the owner for access'});
     return;
   }
   let score=await scoreCalculate(tokenId)
