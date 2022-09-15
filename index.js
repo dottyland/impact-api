@@ -79,6 +79,23 @@ app.get("/api/restrictedView/:tokenId",(req,res)=>{
     score:score
   })
 })
+app.get("/api/calculate/:tokenId",(req,res)=>{
+  if(!req.session.siwe){
+    res.status(401).json({message:'You have to sign-in'});
+    return;
+  }
+  
+  let check=req.body.check;
+  if(check===false){
+  
+    res.status(401).json({message: 'Ask the owner for access'});
+    return;
+  }
+  let score=await scoreCalculate(tokenId)
+  res.status(200).json({
+    score:score
+  })
+})
 app.post('/verify', async function (req, res) {
   try {
       if (!req.body.message) {
