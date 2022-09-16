@@ -5,6 +5,7 @@ function request(req){
   axios.post(url, {
     query: query,
   }).then((res) => {
+    console.log('res :>> ', res);
     return res.data.data
   })
   .catch((error) => {
