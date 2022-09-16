@@ -2,12 +2,15 @@ const express = require("express");
  // import handler from "./api/abc";
 // Initialize Express
 const app = express();
-const query=require("query");
+const query=require("./query");
 // Create GET request
 const ethers = require("ethers")
+const Session = require("express-session")
+const { generateNonce, SiweMessage } =require("siwe");
 async function scoreCalculate(address){
+  console.log('address :>> ', address);
   queryKlima=`{
-    klimaRetires(where: {beneficiary: { benificiaryAddress:${address} } }) {
+    klimaRetires(where:{beneficiaryAddress:"${address}"} ) {
     pool
     token
     amount
@@ -20,12 +23,15 @@ async function scoreCalculate(address){
     }`
     console.log('queryKlima :>> ', queryKlima);
   //add score calculation queries
-  scoreKlima=await query({
+  scoreKlima=await query.query({
       host:"klimadao",
       subgraph:"polygon-bridged-carbon",
       query:queryKlima,
     });
-    return scoreKlima;
+    if(scoreKlima.data.klimaRetires.length)
+    return 1
+    else
+    return 0
 };
 app.use(Session({
   name: 'siwe-quickstart',
@@ -44,7 +50,7 @@ app.get('/nonce', async function (req, res) {
 app.get("/", (req, res) => {
   res.send("Express on Vercel");
 });
-app.get("/api/abc/:address/",(req,res)=>{
+app.get("/api/abc/:address/",async (req,res)=>{
     const address=req.params.address;
     let isPrivate=0;
     let score;
@@ -55,7 +61,8 @@ app.get("/api/abc/:address/",(req,res)=>{
     }
     else
     {
-      score=scoreCalculate(address);
+      score=await scoreCalculate(address);
+      console.log('score :>> ', score);
       res.status(200).json({
       score:score
       });
@@ -76,7 +83,7 @@ app.get("/api/restrictedView/:tokenId",(req,res)=>{
     res.status(401).json({message: 'Ask the owner for access'});
     return;
   }
-  let score=await scoreCalculate(tokenId)
+  let score= scoreCalculate(tokenId)
   res.status(200).json({
     score:score
   })
@@ -93,7 +100,7 @@ app.get("/api/calculate/:tokenId",(req,res)=>{
     res.status(401).json({message: 'Ask the owner for access'});
     return;
   }
-  let score=await scoreCalculate(tokenId)
+  let score=scoreCalculate(tokenId)
   res.status(200).json({
     score:score
   })

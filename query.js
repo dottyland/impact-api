@@ -1,15 +1,19 @@
 const axios = require("axios")
-function request(req){
-  url=`https://api.thegraph.com/subgraphs/name/`+req.host+`/`+req.name;
+
+const request=async(req)=>{
+  url=`https://api.thegraph.com/subgraphs/name/`+req.host+`/`+req.subgraph;
   let query=req.query;
-  axios.post(url, {
+  const result= await axios.post(url, {
     query: query,
   }).then((res) => {
-    console.log('res :>> ', res);
-    return res.data.data
+    console.log('res :>> ', res.data);
+    return res;
   })
   .catch((error) => {
     console.error(error)
   })
+  return result.data;
 }
-export default request()
+module.exports= {
+  query:request,
+}
