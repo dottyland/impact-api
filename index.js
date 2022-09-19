@@ -7,7 +7,7 @@ const query=require("./query");
 const ethers = require("ethers")
 const Session = require("express-session");
 const { generateNonce, SiweMessage } =require("siwe");
-const cors = require("cors");
+const cors = require ('cors');
 
 app.use(cors());
 async function scoreCalculate(address){
@@ -26,7 +26,7 @@ async function scoreCalculate(address){
     }`
     console.log('queryKlima :>> ', queryKlima);
   //add score calculation queries
-  scoreKlima=await query({
+  scoreKlima=await query.query({
       host:"klimadao",
       subgraph:"polygon-bridged-carbon",
       query:queryKlima,
