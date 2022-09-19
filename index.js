@@ -5,8 +5,11 @@ const app = express();
 const query=require("./query");
 // Create GET request
 const ethers = require("ethers")
-const Session = require("express-session")
+const Session = require("express-session");
 const { generateNonce, SiweMessage } =require("siwe");
+const cors = require("cors");
+
+app.use(cors());
 async function scoreCalculate(address){
   console.log('address :>> ', address);
   queryKlima=`{
