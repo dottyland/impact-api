@@ -26,7 +26,7 @@ async function scoreCalculate(address){
     }`
     console.log('queryKlima :>> ', queryKlima);
   //add score calculation queries
-  scoreKlima=await query.query({
+  scoreKlima=await query({
       host:"klimadao",
       subgraph:"polygon-bridged-carbon",
       query:queryKlima,
