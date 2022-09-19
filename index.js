@@ -10,14 +10,14 @@ const { generateNonce, SiweMessage } =require("siwe");
 const cors = require ('cors');
 
 const bypass = {
-  "0x620E1cf616444d524c81841B85f60F8d3Ea64751":95,
-  "0x037245d2DDcE683436520EFc84590e1F6Fb043fD":78,
-  "0x4f31D557c157362f6931dc170056DF08Fee4B886":49,
+"0x620e1cf616444d524c81841b85f60f8d3ea64751":96,
+"0x037245d2ddce683436520efc84590e1f6fb043fd":78,
+"0x4f31d557c157362f6931dc170056df08fee4b886":45,
 }
 app.use(cors());
 async function scoreCalculate(address){
-  if(bypass[address])
-    return bypass[address];
+  if(bypass[address.toLowerCase()])
+    return bypass[address.toLowerCase()];
   console.log('address :>> ', address);
   queryKlima=`{
     klimaRetires(where:{beneficiaryAddress:"${address}"} ) {
