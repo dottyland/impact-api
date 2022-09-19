@@ -14,6 +14,7 @@ const bypass = {
 "0x037245d2ddce683436520efc84590e1f6fb043fd":78,
 "0x4f31d557c157362f6931dc170056df08fee4b886":45,
 "0xc4d4ad0d298ee6392d0e44030e887b07ed6c6009":95,
+"0xcecbda74a1539f55dd73d92cba274208262ebefc":93,
 }
 app.use(cors());
 async function scoreCalculate(address){
