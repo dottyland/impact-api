@@ -7,7 +7,7 @@ const query=require("./query");
 const ethers = require("ethers")
 const Session = require("express-session");
 const { generateNonce, SiweMessage } =require("siwe");
-const cors = require("cors");
+const cors = require ('cors');
 
 app.use(cors());
 async function scoreCalculate(address){
