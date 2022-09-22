@@ -1,27 +1,27 @@
 const express = require("express");
- // import handler from "./api/abc";
+// import handler from "./api/abc";
 // Initialize Express
 const app = express();
-const query=require("./query");
+const query = require("./query");
+const hostedQuery = require("./hostedQuery");
 // Create GET request
-const ethers = require("ethers")
+const ethers = require("ethers");
 const Session = require("express-session");
-const { generateNonce, SiweMessage } =require("siwe");
-const cors = require ('cors');
+const { generateNonce, SiweMessage } = require("siwe");
+const cors = require("cors");
 
 const bypass = {
-"0x620e1cf616444d524c81841b85f60f8d3ea64751":96,
-"0x037245d2ddce683436520efc84590e1f6fb043fd":78,
-"0x4f31d557c157362f6931dc170056df08fee4b886":45,
-"0xc4d4ad0d298ee6392d0e44030e887b07ed6c6009":95,
-}
+  "0x620e1cf616444d524c81841b85f60f8d3ea64751": 96,
+  "0x037245d2ddce683436520efc84590e1f6fb043fd": 78,
+  "0x4f31d557c157362f6931dc170056df08fee4b886": 45,
+  "0xc4d4ad0d298ee6392d0e44030e887b07ed6c6009": 95,
+};
 app.use(cors());
-async function scoreCalculate(address){
-  address=address.toLowerCase();
-  if(bypass[address])
-    return bypass[address];
-  console.log('address :>> ', address);
-  queryKlima=`{
+async function scoreCalculate(address) {
+  address = address.toLowerCase();
+  if (bypass[address]) return bypass[address];
+  console.log("address :>> ", address);
+  queryKlima = `{
     klimaRetires(where:{beneficiaryAddress:"${address}"} ) {
     pool
     token
@@ -32,136 +32,158 @@ async function scoreCalculate(address){
     beneficiaryAddress
     beneficiary
      }
-    }`
-    console.log('queryKlima :>> ', queryKlima);
-  //add score calculation queries
-  scoreKlima=await query.query({
-      host:"klimadao",
-      subgraph:"polygon-bridged-carbon",
-      query:queryKlima,
-    });
-    if(scoreKlima.data.klimaRetires.length)
-    {
-      let score=0;
-      scoreKlima.data.klimaRetires.forEach(element => {
-        score=score+element.amount;
-      });
-      score=Math.floor(score*6)
-      return score;
-    }
-    else
-    return 0
-};
-app.use(Session({
-  name: 'siwe-quickstart',
-  secret: "siwe-quickstart-secret",
-  resave: true,
-  saveUninitialized: true,
-  cookie: { secure: false, sameSite: true }
-}));
+    }`;
+  console.log("queryKlima :>> ", queryKlima);
 
-app.get('/nonce', async function (req, res) {
+  // Query Toucan protocol
+  queryToucan = `{
+    TCO2Balance(where:{id:"${address}"}) {
+      id,
+      user,
+      token,
+      balance,
+    }
+    }`;
+  console.log("queryToucan :>> ", queryToucan);
+
+  //add score calculation queries
+  scoreKlima = await query.query({
+    host: "klimadao",
+    subgraph: "polygon-bridged-carbon",
+    query: queryKlima,
+  });
+  if (scoreKlima.data.klimaRetires.length) {
+    let kscore = 0;
+    scoreKlima.data.klimaRetires.forEach((element) => {
+      kscore = kscore + element.amount;
+    });
+    kscore = Math.floor(kscore * 6);
+  } else kscore = 0;
+
+  // Toucan calculation query
+  scoreToucan = await query.query({
+    host: "toucanprotocol",
+    subgraph: "matic",
+    query: queryToucan,
+  });
+  if (scoreToucan.data.TCO2Balance.length) {
+    let tscore = 0;
+    scoreToucan.data.TCO2Balance.forEach((element) => {
+      tscore = tscore + element.balance;
+    });
+    tscore = Math.floor(tscore * 6);
+  }
+  tscore = 0;
+
+  return Math.floor((kscore + tscore) / 2);
+}
+app.use(
+  Session({
+    name: "siwe-quickstart",
+    secret: "siwe-quickstart-secret",
+    resave: true,
+    saveUninitialized: true,
+    cookie: { secure: false, sameSite: true },
+  })
+);
+
+app.get("/nonce", async function (req, res) {
   req.session.nonce = generateNonce();
-  res.setHeader('Content-Type', 'text/plain');
+  res.setHeader("Content-Type", "text/plain");
   res.status(200).send(req.session.nonce);
 });
 
 app.get("/", (req, res) => {
   res.send("Express on Vercel");
 });
-app.get("/api/abc/:address/",async (req,res)=>{
-    const address=req.params.address;
-    let isPrivate=0;
-    let score;
+app.get("/api/abc/:address/", async (req, res) => {
+  const address = req.params.address;
+  let isPrivate = 0;
+  let score;
   //Add call to contract to check privacy
-    if(isPrivate){
-      res.status(401).json({message:'Data is private and offChain'});
-      return;
-    }
-    else
-    {
-      score=await scoreCalculate(address);
-      console.log('score :>> ', score);
-      res.status(200).json({
-      score:score
-      });
-    }
-})
+  if (isPrivate) {
+    res.status(401).json({ message: "Data is private and offChain" });
+    return;
+  } else {
+    score = await scoreCalculate(address);
+    console.log("score :>> ", score);
+    res.status(200).json({
+      score: score,
+    });
+  }
+});
 
-app.get("/api/restrictedView/:tokenId",(req,res)=>{
-  if(!req.session.siwe){
-    res.status(401).json({message:'You have to sign-in'});
+app.get("/api/restrictedView/:tokenId", (req, res) => {
+  if (!req.session.siwe) {
+    res.status(401).json({ message: "You have to sign-in" });
     return;
   }
-
 
   //add etherscan call to check privacy list
-  let check=req.body.check;
-  if(check===false){
-  
-    res.status(401).json({message: 'Ask the owner for access'});
+  let check = req.body.check;
+  if (check === false) {
+    res.status(401).json({ message: "Ask the owner for access" });
     return;
   }
-  let score= scoreCalculate(tokenId)
+  let score = scoreCalculate(tokenId);
   res.status(200).json({
-    score:score
-  })
-})
-app.get("/api/calculate/",(req,res)=>{
-  if(!req.session.siwe){
-    res.status(401).json({message:'You have to sign-in'});
+    score: score,
+  });
+});
+app.get("/api/calculate/", (req, res) => {
+  if (!req.session.siwe) {
+    res.status(401).json({ message: "You have to sign-in" });
     return;
   }
-  let score=scoreCalculate(req.session.siwe.address)
+  let score = scoreCalculate(req.session.siwe.address);
   res.status(200).json({
-    score:score
-  })
-})
-app.post('/verify', async function (req, res) {
+    score: score,
+  });
+});
+app.post("/verify", async function (req, res) {
   try {
-      if (!req.body.message) {
-          res.status(422).json({ message: 'Expected prepareMessage object as body.' });
-          return;
-      }
+    if (!req.body.message) {
+      res
+        .status(422)
+        .json({ message: "Expected prepareMessage object as body." });
+      return;
+    }
 
-      let message = new SiweMessage(req.body.message);
-      const fields = await message.validate(req.body.signature);
-      if (fields.nonce !== req.session.nonce) {
-          console.log(req.session);
-          res.status(422).json({
-              message: `Invalid nonce.`,
-          });
-          return;
-      }
-      req.session.siwe = fields;
-      req.session.cookie.expires = new Date(fields.expirationTime);
-      req.session.save(() => res.status(200).end());
+    let message = new SiweMessage(req.body.message);
+    const fields = await message.validate(req.body.signature);
+    if (fields.nonce !== req.session.nonce) {
+      console.log(req.session);
+      res.status(422).json({
+        message: `Invalid nonce.`,
+      });
+      return;
+    }
+    req.session.siwe = fields;
+    req.session.cookie.expires = new Date(fields.expirationTime);
+    req.session.save(() => res.status(200).end());
   } catch (e) {
-      req.session.siwe = null;
-      req.session.nonce = null;
-      console.error(e);
-      switch (e) {
-          case ErrorTypes.EXPIRED_MESSAGE: {
-              req.session.save(() => res.status(440).json({ message: e.message }));
-              break;
-          }
-          case ErrorTypes.INVALID_SIGNATURE: {
-              req.session.save(() => res.status(422).json({ message: e.message }));
-              break;
-          }
-          default: {
-              req.session.save(() => res.status(500).json({ message: e.message }));
-              break;
-          }
+    req.session.siwe = null;
+    req.session.nonce = null;
+    console.error(e);
+    switch (e) {
+      case ErrorTypes.EXPIRED_MESSAGE: {
+        req.session.save(() => res.status(440).json({ message: e.message }));
+        break;
       }
+      case ErrorTypes.INVALID_SIGNATURE: {
+        req.session.save(() => res.status(422).json({ message: e.message }));
+        break;
+      }
+      default: {
+        req.session.save(() => res.status(500).json({ message: e.message }));
+        break;
+      }
+    }
   }
 });
 // Initialize server
 app.listen(5000, () => {
   console.log("Running on port 5000.");
 });
-
-
-
 
 module.exports = app;
