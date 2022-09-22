@@ -75,7 +75,7 @@ async function scoreCalculate(address) {
   }
   tscore = 0;
 
-  return (kscore + tscore) / 2;
+  return Math.floor((kscore + tscore) / 2);
 }
 app.use(
   Session({
