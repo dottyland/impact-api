@@ -40,17 +40,19 @@ async function scoreCalculate(address){
       subgraph:"polygon-bridged-carbon",
       query:queryKlima,
     });
-    if(scoreKlima.data.klimaRetires.length)
+  if(scoreKlima.data.klimaRetires.length)
     {
-      let score=0;
+      let kscore=0;
       scoreKlima.data.klimaRetires.forEach(element => {
-        score=score+element.amount;
+        kscore=kscore+element.amount;
       });
-      score=Math.floor(score*6)
-      return score;
+      kscore=Math.floor(kscore*6)
+      return kscore;
     }
     else
-    return 0
+    return 0;
+
+  
 };
 app.use(Session({
   name: 'siwe-quickstart',
