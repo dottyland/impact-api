@@ -15,9 +15,13 @@ const bypass = {
 "0x4f31d557c157362f6931dc170056df08fee4b886":45,
 "0xc4d4ad0d298ee6392d0e44030e887b07ed6c6009":95,
 }
-app.use(cors());
+app.use(cors({
+  origin:'*'
+}));
 async function scoreCalculate(address){
   address=address.toLowerCase();
+  let scoreKlima=0;
+  let scoreToucan=0;
   if(bypass[address])
     return bypass[address];
   console.log('address :>> ', address);
@@ -33,24 +37,50 @@ async function scoreCalculate(address){
     beneficiary
      }
     }`
+    queryToucan=`{
+      klimaRetires(where:{beneficiaryAddress:"${address}"} ) {
+      pool
+      token
+      amount
+      retirementMessage
+      retiringAddress
+      beneficiary
+      beneficiaryAddress
+      beneficiary
+       }
+      }`
     console.log('queryKlima :>> ', queryKlima);
   //add score calculation queries
-  scoreKlima=await query.query({
+  dataKlima=await query.query({
       host:"klimadao",
       subgraph:"polygon-bridged-carbon",
       query:queryKlima,
     });
-    if(scoreKlima.data.klimaRetires.length)
+
+    /*
+    dataToucan=await query.query({
+      host:"toucanprotocol",
+      subgraph:"matic",
+      query:queryToucan,
+    });
+    */
+
+    if(dataKlima.data.klimaRetires.length)
     {
-      let score=0;
-      scoreKlima.data.klimaRetires.forEach(element => {
-        score=score+element.amount;
+      dataKlima.data.klimaRetires.forEach(element => {
+        scoreKlima=scoreKlima+element.amount;
       });
-      score=Math.floor(score*6)
-      return score;
+      scoreKlima=Math.floor(scoreKlima*6)
     }
-    else
-    return 0
+    /*if(dataToucan.data.klimaRetires.length)
+    {
+      dataToucan.data.klimaRetires.forEach(element => {
+        scoreToucan=scoreToucan+element.amount;
+      });
+      scoreToucan=Math.floor(scoreToucan*6)
+    }
+    */
+    return scoreKlima + scoreToucan
 };
 app.use(Session({
   name: 'siwe-quickstart',
