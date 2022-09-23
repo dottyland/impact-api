@@ -16,7 +16,8 @@ const bypass = {
 "0xc4d4ad0d298ee6392d0e44030e887b07ed6c6009":95,
 }
 app.use(cors({
-  origin:'*'
+  origin:'*',
+  credentials: true,
 }));
 async function scoreCalculate(address){
   address=address.toLowerCase();
