@@ -16,10 +16,16 @@ app.use(Session({
   secret: "siwe-quickstart-secret",
   resave: true,
   saveUninitialized: true,
-  cookie: { secure: false, nonce:null }
+  cookie: { secure: false }
 }));
 app.use(express.json());
 app.use(express.urlencoded());
+let nonces={
+
+}
+let siwes={
+
+}
 const bypass = {
 "0x620e1cf616444d524c81841b85f60f8d3ea64751":96,
 "0x037245d2ddce683436520efc84590e1f6fb043fd":78,
@@ -27,7 +33,7 @@ const bypass = {
 "0xc4d4ad0d298ee6392d0e44030e887b07ed6c6009":95,
 }
 app.use(cors({
-  origin:"https://impact-score-frontend-git-dev-dottyland.vercel.app",
+  origin:"https://impact-score-frontend-git-dev-dottyland.vercel.app/auth",
   credentials: true,
 }));
 
@@ -97,12 +103,13 @@ async function scoreCalculate(address){
 };
 
 
-app.get('/nonce', async function (req, res) {
+app.get('/nonce/:address/', async function (req, res) {
   nonce = await generateNonce();
-  console.log('req. :>> ', req.session);
+  console.log('nonce :>> ', nonce);
+  nonces[req.params.address]=nonce;
   res.setHeader('Content-Type', 'text/plain');
-  req.session.cookie.nonce=nonce
-  res.status(200).send(req.session.nonce);
+  req.session.save();
+  res.status(200).send(nonce);
 });
 
 app.get("/", (req, res) => {
@@ -146,13 +153,16 @@ app.get("/api/restrictedView/:tokenId",(req,res)=>{
     score:score
   })
 })
-app.get("/api/calculate/", async(req,res)=>{
-  if(!req.session.siwe){
+app.post("/api/calculate/", async(req,res)=>{
+  console.log('req.body.addre :>> ', req.body.address);
+  console.log('req.body :>> ', req.body);
+  console.log('req.body.nonce :>> ', req.body.nonce);
+  if(!siwes[req.body.address].nonce===req.body.nonce){
     res.status(401).json({message:'You have to sign-in'});
     return;
   }
-  let score= await scoreCalculate(req.session.siwe.address);
-  console.log('score :>> ', score,req.session.siwe.address);
+  let score= await scoreCalculate(req.body.address);
+  console.log('score :>> ', score,req.body.address);
   res.status(200).json({
     score
   })
@@ -170,15 +180,17 @@ app.post('/verify', async function (req, res) {
       console.log('req :>> ', req);
       console.log('field :>> ', fields);
       console.log('req.session :>> ', req.session);
-      if (fields.nonce !== req.session.cookie.nonce) {
+      console.log('nonces :>> ', nonces);
+      if (fields.nonce !== nonces[fields.address]) {
           console.log(req.session);
-          res.status(421).json({
+          res.status(423).json({
               message: `Invalid nonce.`+req.session.nonce+"  "+fields.nonce+"\n"+req+"\n"+req.session,
           });
           return;
       }
-      req.session.siwe = fields;
-      req.session.cookie.expires = new Date(fields.expirationTime);
+      siwes[fields.address]={};
+      siwes[fields.address].nonce = fields.nonce;
+      console.log('siwes :>> ', siwes);
       req.session.save(() => res.status(200).end());
   } catch (e) {
       req.session.siwe = null;
