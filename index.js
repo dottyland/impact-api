@@ -8,6 +8,14 @@ const ethers = require("ethers")
 const Session = require("express-session");
 const { generateNonce, SiweMessage } =require("siwe");
 const cors = require ('cors');
+
+app.use(Session({
+  name: 'siwe-quickstart',
+  secret: "siwe-quickstart-secret",
+  resave: true,
+  saveUninitialized: true,
+  cookie: { secure: false, sameSite: true }
+}));
 app.use(express.json());
 app.use(express.urlencoded());
 const bypass = {
@@ -84,13 +92,7 @@ async function scoreCalculate(address){
     */
     return scoreKlima + scoreToucan
 };
-app.use(Session({
-  name: 'siwe-quickstart',
-  secret: "siwe-quickstart-secret",
-  resave: true,
-  saveUninitialized: true,
-  cookie: { secure: false, sameSite: true }
-}));
+
 
 app.get('/nonce', async function (req, res) {
   req.session.nonce = generateNonce();
