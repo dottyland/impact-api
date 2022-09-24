@@ -8,7 +8,8 @@ const ethers = require("ethers")
 const Session = require("express-session");
 const { generateNonce, SiweMessage } =require("siwe");
 const cors = require ('cors');
-
+app.use(express.json());
+app.use(express.urlencoded());
 const bypass = {
 "0x620e1cf616444d524c81841b85f60f8d3ea64751":96,
 "0x037245d2ddce683436520efc84590e1f6fb043fd":78,
@@ -138,18 +139,20 @@ app.get("/api/restrictedView/:tokenId",(req,res)=>{
     score:score
   })
 })
-app.get("/api/calculate/",(req,res)=>{
+app.get("/api/calculate/", async(req,res)=>{
   if(!req.session.siwe){
     res.status(401).json({message:'You have to sign-in'});
     return;
   }
-  let score=scoreCalculate(req.session.siwe.address)
+  let score= await scoreCalculate(req.session.siwe.address);
+  console.log('score :>> ', score,req.session.siwe.address);
   res.status(200).json({
-    score:score
+    score
   })
 })
 app.post('/verify', async function (req, res) {
   try {
+    
       if (!req.body.message) {
           res.status(422).json({ message: 'Expected prepareMessage object as body.' });
           return;
