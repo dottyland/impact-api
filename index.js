@@ -164,7 +164,7 @@ app.post('/verify', async function (req, res) {
       console.log('req.session :>> ', req.session);
       if (fields.nonce !== req.session.nonce) {
           console.log(req.session);
-          res.status(422).json({
+          res.status(421).json({
               message: `Invalid nonce.`,
           });
           return;
