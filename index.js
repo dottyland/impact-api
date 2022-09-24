@@ -16,7 +16,7 @@ app.use(Session({
   secret: "siwe-quickstart-secret",
   resave: true,
   saveUninitialized: true,
-  cookie: { secure: false }
+  cookie: { secure: false, nonce:null }
 }));
 app.use(express.json());
 app.use(express.urlencoded());
@@ -98,10 +98,10 @@ async function scoreCalculate(address){
 
 
 app.get('/nonce', async function (req, res) {
-  req.session.nonce = await generateNonce();
+  nonce = await generateNonce();
   console.log('req. :>> ', req.session);
   res.setHeader('Content-Type', 'text/plain');
-  req.session.save();
+  req.session.cookie.nonce=nonce
   res.status(200).send(req.session.nonce);
 });
 
@@ -170,7 +170,7 @@ app.post('/verify', async function (req, res) {
       console.log('req :>> ', req);
       console.log('field :>> ', fields);
       console.log('req.session :>> ', req.session);
-      if (fields.nonce !== req.session.nonce) {
+      if (fields.nonce !== req.session.cookie.nonce) {
           console.log(req.session);
           res.status(421).json({
               message: `Invalid nonce.`+req.session.nonce+"  "+fields.nonce+"\n"+req+"\n"+req.session,
