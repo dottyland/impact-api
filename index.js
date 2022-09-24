@@ -11,6 +11,7 @@ const cors = require ('cors');
 const app = express();
 
 app.use(Session({
+  nonce:null,
   name: 'siwe-quickstart',
   secret: "siwe-quickstart-secret",
   resave: true,
