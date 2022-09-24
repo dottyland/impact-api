@@ -15,7 +15,7 @@ app.use(Session({
   secret: "siwe-quickstart-secret",
   resave: true,
   saveUninitialized: true,
-  cookie: { secure: false, sameSite: true }
+  cookie: { secure: false }
 }));
 app.use(express.json());
 app.use(express.urlencoded());
@@ -29,6 +29,7 @@ app.use(cors({
   origin:"https://impact-score-frontend-git-dev-dottyland.vercel.app",
   credentials: true,
 }));
+
 async function scoreCalculate(address){
   address=address.toLowerCase();
   let scoreKlima=0;
