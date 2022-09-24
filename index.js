@@ -160,6 +160,8 @@ app.post('/verify', async function (req, res) {
 
       let message = new SiweMessage(req.body.message);
       const fields = await message.validate(req.body.signature);
+      console.log('field :>> ', fields);
+      console.log('req.session :>> ', req.session);
       if (fields.nonce !== req.session.nonce) {
           console.log(req.session);
           res.status(422).json({
