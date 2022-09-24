@@ -98,7 +98,8 @@ async function scoreCalculate(address){
 
 
 app.get('/nonce', async function (req, res) {
-  req.session.nonce = generateNonce();
+  req.session.nonce = await generateNonce();
+  console.log('req. :>> ', req.session);
   res.setHeader('Content-Type', 'text/plain');
   req.session.save();
   res.status(200).send(req.session.nonce);
