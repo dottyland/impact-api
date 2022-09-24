@@ -1,13 +1,14 @@
 const express = require("express");
  // import handler from "./api/abc";
 // Initialize Express
-const app = express();
+
 const query=require("./query");
 // Create GET request
 const ethers = require("ethers")
 const Session = require("express-session");
 const { generateNonce, SiweMessage } =require("siwe");
 const cors = require ('cors');
+const app = express();
 
 app.use(Session({
   name: 'siwe-quickstart',
