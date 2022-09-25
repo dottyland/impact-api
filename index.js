@@ -31,7 +31,7 @@ const bypass = {
 "0x037245d2ddce683436520efc84590e1f6fb043fd":78,
 "0x4f31d557c157362f6931dc170056df08fee4b886":45,
 "0xc4d4ad0d298ee6392d0e44030e887b07ed6c6009":95,
-"0xfF3098E1EF2eFcDe99b1F5607E9db6a46DDD8c71":94,
+"0xff3098e1ef2efcde99b1f5607e9db6a46ddd8c71":94,
 }
 app.use(cors({
   origin:"https://impact-score-frontend-eight.vercel.app",
