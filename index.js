@@ -34,7 +34,7 @@ const bypass = {
 "0xfF3098E1EF2eFcDe99b1F5607E9db6a46DDD8c71":94,
 }
 app.use(cors({
-  origin:"https://impact-score-frontend-git-dev-dottyland.vercel.app",
+  origin:"https://impact-score-frontend-eight.vercel.app/",
   credentials: true,
 }));
 
